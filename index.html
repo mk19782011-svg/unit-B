@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الامتحان الأول - المعلم محمد تيسير الخرشة</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f4f7f6;
+            color: #2d3748;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .underlined-target {
+            text-decoration: underline;
+            font-weight: bold;
+            color: #1a202c;
+            background-color: #fef08a;
+            padding: 0 4px;
+            border-radius: 2px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between" oncontextmenu="return false;">
+
+    <!-- Navbar -->
+    <header class="bg-white shadow-sm border-b border-gray-200 py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow">
+                    م
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800 leading-tight">الامتحان الأول</h1>
+                    <p class="text-xs text-gray-500 font-medium">إعداد: المعلم محمد تيسير الخرشة</p>
+                </div>
+            </div>
+            <button onclick="openTeacherModal()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-3 rounded-lg border border-gray-300 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield text-emerald-600"></i> لوحة المعلم
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- Anti-cheat Alert Banner -->
+        <div id="cheatAlert" class="hidden mb-4 bg-amber-50 border-r-4 border-amber-500 p-4 rounded-r shadow-sm">
+            <div class="flex items-center">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-xl ml-3"></i>
+                <div>
+                    <p class="font-bold text-amber-800 text-sm">تنبيه المراقبة والمغادرة!</p>
+                    <p class="text-xs text-amber-700" id="cheatCountText">تنبيه: مغادرة شاشة الامتحان تُسجل في التقرير النهائي.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: Welcome / Start Screen -->
+        <div id="welcomeScreen" class="glass-card rounded-2xl p-6 md:p-10 shadow-xl text-center border border-gray-100">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-inner">
+                <i class="fa-solid fa-file-pen"></i>
+            </div>
+            
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-2">الامتحان الأول</h2>
+            <div class="inline-block bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2 mb-6">
+                <p class="text-emerald-800 font-bold text-sm md:text-base">إعداد المعلم: محمد تيسير الخرشة</p>
+            </div>
+            
+            <p class="text-gray-600 mb-6 text-sm md:text-base">يرجى كتابة الاسم الرباعي بشكل صحيح للبدء في الامتحان</p>
+            
+            <div class="max-w-md mx-auto space-y-4">
+                <div class="text-right">
+                    <label class="block text-xs font-bold text-gray-700 mb-1 mr-1">اسم الطالب الكامل *</label>
+                    <input type="text" id="studentNameInput" placeholder="أدخل اسمك الكامل هنا..." class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-gray-800 font-medium">
+                    <p id="nameError" class="text-red-500 text-xs mt-1 hidden text-right font-medium">* يرجى إدخال الاسم الكامل لمتابعة الامتحان</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 text-right text-xs text-gray-600 space-y-2">
+                    <div class="flex items-center gap-2 font-bold text-gray-700">
+                        <i class="fa-solid fa-circle-info text-emerald-600"></i>تعليمات حازمة:
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 pr-1">
+                        <li>الدرجة الإجمالية المحتسبة للامتحان من 100.</li>
+                        <li>يُمنع النسخ أو الخروج من تبويب الامتحان.</li>
+                        <li>يتم حفظ إجابتك ونتيجتك تلقائياً في السجل الإلكتروني.</li>
+                    </ul>
+                </div>
+
+                <button onclick="startExam()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition duration-200 flex items-center justify-center gap-2 text-base">
+                    <span>بدء الامتحان الآن</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: Exam Questions Screen -->
+        <div id="examScreen" class="hidden glass-card rounded-2xl p-5 md:p-8 shadow-xl border border-gray-100 flex-col">
+            <!-- Progress Bar & Counter -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2 text-xs md:text-sm font-bold text-gray-600">
+                    <span id="questionCounter">السؤال 1 من 43</span>
+                    <span id="progressPercent" class="text-emerald-600">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="progressBar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Reading Passage Block -->
+            <div id="passageBox" class="hidden mb-6 bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200 text-gray-800 text-sm md:text-base leading-relaxed text-left font-sans">
+                <div class="text-right text-xs font-bold text-emerald-700 mb-2 flex items-center gap-1">
+                    <i class="fa-solid fa-book-open"></i> نص القطعة المرفق:
+                </div>
+                <div id="passageContent" dir="ltr" class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm leading-6"></div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="mb-6">
+                <div class="flex items-start gap-3">
+                    <span id="qBadge" class="bg-emerald-100 text-emerald-800 font-bold text-sm px-2.5 py-1 rounded-lg shrink-0 mt-0.5">1</span>
+                    <h3 id="questionText" class="text-base md:text-lg font-bold text-gray-800 leading-snug" dir="ltr">
+                        Loading Question...
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="optionsContainer" class="space-y-3 mb-8" dir="ltr">
+                <!-- Dynamic Options Rendered Here -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
+                <button id="prevBtn" onclick="prevQuestion()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>السابق</span>
+                </button>
+
+                <button id="nextBtn" onclick="nextQuestion()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                    <span id="nextBtnText">التالي</span>
+                    <i id="nextBtnIcon" class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: Result Screen -->
+        <div id="resultScreen" class="hidden glass-card rounded-2xl p-6 md:p-10 shadow-xl text-center border border-gray-100">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner" id="resultIconBg">
+                <i id="resultIcon" class="fa-solid fa-award"></i>
+            </div>
+            
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-1">نتيجة الامتحان</h2>
+            <p class="text-sm text-gray-500 mb-6" id="resultStudentName"></p>
+
+            <div class="bg-gray-50 rounded-2xl p-6 max-w-sm mx-auto border border-gray-200 mb-8">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">علامتك النهائية</p>
+                <div class="text-4xl md:text-5xl font-black text-emerald-600 my-2" id="finalScore">0 / 100</div>
+                <p class="text-xs font-semibold px-3 py-1 rounded-full inline-block mt-1" id="scoreFeedbackTag">غير مكتمل</p>
+            </div>
+
+            <div class="space-y-3 max-w-md mx-auto">
+                <button onclick="toggleFeedback()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>عرض التغذية الراجعة والتصحيح</span>
+                </button>
+                <button onclick="location.reload()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-xl border border-gray-300 transition text-sm">
+                    إعادة الامتحان
+                </button>
+            </div>
+
+            <!-- Detailed Feedback Section -->
+            <div id="feedbackContainer" class="hidden mt-8 text-right space-y-4 border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-square-poll-vertical text-emerald-600"></i>
+                    التفاصيل والإجابات النموذجية:
+                </h3>
+                <div id="feedbackList" class="space-y-4"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Teacher Modal -->
+    <div id="teacherModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl border border-gray-100 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
+                <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-user-tie text-emerald-600"></i> لوحة المعلم - نتائج الطلاب
+                </h3>
+                <button onclick="closeTeacherModal()" class="text-gray-400 hover:text-gray-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Login View -->
+            <div id="teacherAuthView" class="space-y-4 py-4">
+                <p class="text-sm text-gray-600">يرجى إدخال كلمة مرور المعلم للوصول لقواعد البيانات والنتائج:</p>
+                <input type="password" id="teacherPassInput" placeholder="كلمة المرور..." class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                <p id="teacherAuthErr" class="text-red-500 text-xs hidden">كلمة المرور غير صحيحة!</p>
+                <button onclick="verifyTeacher()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                    دخول
+                </button>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="teacherDashboardView" class="hidden flex-col flex-grow overflow-hidden space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-500">سجل إجابات الطلاب المتصل بالشبكة:</span>
+                    <button onclick="loadFirebaseResults()" class="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> تحديث
+                    </button>
+                </div>
+                <div class="overflow-y-auto flex-grow border border-gray-200 rounded-xl">
+                    <table class="w-full text-xs text-right text-gray-600">
+                        <thead class="bg-gray-50 text-gray-700 sticky top-0 border-b border-gray-200">
+                            <tr>
+                                <th class="p-2.5">الطالب</th>
+                                <th class="p-2.5">العلامة</th>
+                                <th class="p-2.5">التاريخ</th>
+                                <th class="p-2.5">المخالفات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody" class="divide-y divide-gray-100">
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-gray-400">لا توجد نتائج مسجلة حتى الآن</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500">
+        جميع الحقوق محفوظة © المعلم محمد تيسير الخرشة
+    </footer>
+
+    <!-- Script Application Logic -->
+    <script>
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            databaseURL: "https://exam-default-rtdb.firebaseio.com"
+        };
+        
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch(e) {
+            console.warn("Firebase initialized in offline mode fallback.");
+        }
+
+        // --- 2. EXAM DATA SOURCE (CORRECTED 'RINGS' ANSWER) ---
+        const rawQuestions = [
+            { q: "I can't believe we ___________ touch after being such good friends at school.", options: ["made", "lost", "stayed", "kept"], correct: 1 },
+            { q: "Could you ___________ to Ayham that I'll be ten minutes late?", options: ["spread the message", "pass on the message", "deliver the message", "send the message"], correct: 1 },
+            { q: "___________ in contact was much easier than it had ever been.", options: ["maintaining", "pass on", "staying", "spread"], correct: 2 },
+            { q: "The phone ___________ all the time now that we run a business.", options: ["is ringing", "ring", "rings", "has rung"], correct: 2 }, // Correct answer is 'rings' (index 2)
+            { q: "Young people ___________ by hand less often these days.", options: ["are writing", "writes", "wrote", "written"], correct: 0 },
+            { q: "I ___________ Malek a couple of times today.", options: ["have called", "am calling", "have call", "called"], correct: 0 },
+            { q: "I established contact with Mr Farley earlier today, but he ___________ yet.", options: ["has respond", "hasn’t responds", "hasn’t responded", "doesn’t respond"], correct: 2 },
+            { q: "Since the dawn of time, people ___________ different ways of communicating at a distance.", options: ["has been using", "have been using", "has been used", "have been used"], correct: 1 },
+            { q: "Do you know that man? He ___________ at you all evening.", options: ["has been looked", "have been looking", "have been looking", "has looking"], correct: 2 },
+            { q: "In ancient times, they ___________ more ingenious methods of delivering messages; for example, sending a message in a bottle.", options: ["invent", "invented", "had invented", "were inventing"], correct: 1 },
+            { q: "I ___________ a film when the lights suddenly went out.", options: ["was watching", "are watching", "were watching", "watched"], correct: 0 },
+            { q: "Before Rashid met his wife, he ___________ single for a decade.", options: ["has been", "had been", "have been", "were"], correct: 1 },
+            { q: "___________ , Sara writes a new story to her best friend .", options: ["All the morning", "Ever since", "Once in a while", "When"], correct: 2 },
+            { q: "He has been writing thank-you letters ___________.", options: ["all the morning", "ever since", "once in a while", "when"], correct: 0 },
+            { q: "The researchers <u class='underlined-target'>had never understood</u> the ancient text before that incredible day. <br><span class='text-xs text-gray-500 font-normal'>The underlined words in the sentence above are used to describe:</span>", options: [
+                "routines and habits/things that happen repeatedly.",
+                "actions and states which began in the past and continue until now.",
+                "situations which are changing during the present time.",
+                "an action in the past that was completed before another action or time in the past ."
+            ], correct: 3 },
+            { q: "We <u class='underlined-target'>have been learning</u> about ancient methods of communication at school recently. <br><span class='text-xs text-gray-500 font-normal'>The underlined words in the sentence above are used to describe:</span>", options: [
+                "an action in progress or repeated over a period of time up until now.",
+                "Finished past actions with a present result .",
+                "actions that started and finished at a specific time in the past",
+                "a long activity interrupted by a short one."
+            ], correct: 0 },
+            { q: "Rana has <u class='underlined-target'>drawn my attention to</u> a problem. <br><span class='text-xs text-gray-500 font-normal'>The underlined phrase can be replaced with:</span>", options: ["picked up", "pointed out", "made out", "brought about"], correct: 1 },
+            { q: "You don’t understand ? Do I have to <u class='underlined-target'>spell out</u> what I mean?", options: ["get across", "bring about", "come across", "spell out"], correct: 3 },
+            { q: "It was cloudy, but he could still <u class='underlined-target'>make out</u> the distant star.", options: ["Pick up", "bring about", "make out", "wipe out"], correct: 2 },
+            { q: "I couldn’t <u class='underlined-target'>process</u> so much information. <br><span class='text-xs text-gray-500 font-normal'>The underlined verb can be replaced with:</span>", options: ["get across", "point out", "make out", "take in"], correct: 3 },
+            { q: "”<u class='underlined-target'>to successfully communicate a message/ an idea</u>”, means:", options: ["get across", "take in", "figure out", "come across"], correct: 0 },
+            { q: "A: When Grandad was a child , they didn’t have computers. <br>B: ___________ ? I can’t imagine a world like that!", options: ["wasn’t he", "was he", "didn’t they", "didn’t he"], correct: 2 },
+            { q: "She usually comes in late , ___________ ?", options: ["is she", "she is", "does she", "doesn’t she"], correct: 3 },
+            { q: "Nothing has happened so far, ___________ ?", options: ["hasn’t it", "has it", "does it", "doesn’t it"], correct: 1 },
+            { q: "Nobody gave you the message, ___________ ?", options: ["did they", "did he", "didn’t he", "didn’t they"], correct: 0 },
+            { q: "Let’s go to the party, ___________ ?", options: ["will we", "shall we", "won’t you", "do you"], correct: 1 },
+            { q: "I’m having lunch with them, ___________ ?", options: ["am I", "are you", "aren’t you", "aren’t I"], correct: 3 },
+            { q: "Come to visit us next summer, ___________ ?", options: ["shall I", "can’t you", "won’t you", "could you"], correct: 2 },
+            { q: "The room looks different . Someone has moved the sofa, ___________ ?", options: ["haven’t they", "hasn’t it", "doesn’t it", "have they"], correct: 0 },
+            { q: "A- I ___________ to live in Aqaba. B -Did you? I bet it was amazing.", options: ["was used", "use", "used", "didn’t use"], correct: 2 },
+            { q: "Kareem was <u class='underlined-target'>thrilled</u> when he found out he'd got a place at university. <br><span class='text-xs text-gray-500 font-normal'>The adjective that replaces the underlined word is:</span>", options: ["terrified", "ecstatic", "tense", "devastated"], correct: 1 },
+            { q: "Passengers were left <u class='underlined-target'>confused</u> after the departure gate was changed seven times. <br><span class='text-xs text-gray-500 font-normal'>The Synonym that replaces the underlined word is:</span>", options: ["ecstatic", "livid", "exasperated", "bewildered"], correct: 3 },
+            { q: "The sentence “<u class='underlined-target'>He is driving me up the wall!</u>” illustrates:", options: ["annoyance", "sadness", "happiness", "relief"], correct: 0 },
+            { q: "The phrase “<u class='underlined-target'>That’s a weight off my mind.</u>” expresses:", options: ["relief", "anxiety", "frustration", "disbelief"], correct: 0 },
+            { q: "The phrase that conveys a sense of <u class='underlined-target'>anxiety</u> is:", options: ["I've had it up to here with", "I’m feeling a bit blue", "I’m worried sick about", "I'm feeling a bit down in the dumbs"], correct: 2 },
+            { q: "When I commented on the kind of music Caroline likes, she jumped down my ___________.", options: ["back", "throat", "mouth", "spot"], correct: 1 },
+            { q: "In a conversation, don’t just ___________ questions at someone. Wait for an answer and listen!", options: ["shoot", "make", "catch", "fire"], correct: 3 },
+
+            // --- PASSAGE QUESTIONS ---
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "What did Jane discover about the diet of chimpanzees?", 
+                options: ["They are omnivores.", "They are strictly vegetarian.", "They only eat ants.", "They eat fruits only."], 
+                correct: 0 
+            },
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "Mention methods of communication between chimpanzees according to the text.", 
+                options: ["Written words and symbols", "Touch, sound, and sign language", "Complex human language", "Whistling and eye contact"], 
+                correct: 1 
+            },
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "Who did Jane meet when she arrived in Africa, and what job did they offer her?", 
+                options: ["Dr Dolittle; teaching children", "A scientist; observing chimpanzees in the wild", "Her mother; running a national park", "UN Messengers; writing books"], 
+                correct: 1 
+            },
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "What surprising behavior did Jane observe in chimpanzees that changed people's beliefs about animals?", 
+                options: ["Chimpanzees using sticks as tools", "Chimpanzees speaking human language", "Chimpanzees swimming in Lake Tanganyika", "Chimpanzees building houses"], 
+                correct: 0 
+            },
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "Find a word in the text which means (<u class='underlined-target'>group that competes with others</u>):", 
+                options: ["fictional", "rival", "omnivores", "calmness"], 
+                correct: 1 
+            },
+            { 
+                passage: "As a child, Jane loved reading books about a fictional character called Dr Dolittle, who could talk to animals.<br>" +
+                           "Perhaps this is what inspired her to go to Africa when she was in her 20s to observe chimpanzees.<br>" +
+                           "At first, the animals ran away, but her calmness gained <u class='underlined-target'>their</u> trust over time.<br>" +
+                           "She saw different groups of chimpanzees have battles and communicate through touch, sound, and sign language.<br>" +
+                           "Through her work, she became a UN Messenger for peace in 2002 after writing many famous books.",
+                q: "What does the underlined pronoun (<u class='underlined-target'>their</u>) in the text refer to?", 
+                options: ["wild chimpanzees", "people", "books", "scientists"], 
+                correct: 0 
+            }
+        ];
+
+        // --- 3. STATE VARIABLES ---
+        let processedQuestions = [];
+        let currentQIndex = 0;
+        let studentAnswers = [];
+        let studentName = "";
+        let cheatViolations = 0;
+
+        // --- 4. SHUFFLE UTILITY ---
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function prepareExamQuestions() {
+            const shuffledQ = shuffleArray(rawQuestions);
+            processedQuestions = shuffledQ.map(qObj => {
+                const indexedOptions = qObj.options.map((opt, idx) => ({ text: opt, isCorrect: idx === qObj.correct }));
+                const shuffledOpts = shuffleArray(indexedOptions);
+                const correctNewIdx = shuffledOpts.findIndex(o => o.isCorrect);
+                return {
+                    ...qObj,
+                    options: shuffledOpts.map(o => o.text),
+                    correct: correctNewIdx
+                };
+            });
+            studentAnswers = new Array(processedQuestions.length).fill(null);
+        }
+
+        // --- 5. EXAM CONTROLLER FUNCTIONS ---
+        function startExam() {
+            const nameInput = document.getElementById("studentNameInput").value.trim();
+            if (!nameInput || nameInput.split(" ").length < 2) {
+                document.getElementById("nameError").classList.remove("hidden");
+                return;
+            }
+            studentName = nameInput;
+            document.getElementById("nameError").classList.add("hidden");
+
+            prepareExamQuestions();
+            
+            document.getElementById("welcomeScreen").classList.add("hidden");
+            document.getElementById("examScreen").classList.remove("hidden");
+            document.getElementById("examScreen").classList.add("flex");
+
+            renderQuestion();
+            setupAntiCheat();
+        }
+
+        function renderQuestion() {
+            const q = processedQuestions[currentQIndex];
+            
+            // Progress Bar
+            const total = processedQuestions.length;
+            const pct = Math.round(((currentQIndex + 1) / total) * 100);
+            document.getElementById("questionCounter").innerText = `السؤال ${currentQIndex + 1} من ${total}`;
+            document.getElementById("progressPercent").innerText = `${pct}%`;
+            document.getElementById("progressBar").style.width = `${pct}%`;
+
+            // Badge & Question Text
+            document.getElementById("qBadge").innerText = currentQIndex + 1;
+            document.getElementById("questionText").innerHTML = q.q;
+
+            // Passage Render
+            const passageBox = document.getElementById("passageBox");
+            if (q.passage) {
+                document.getElementById("passageContent").innerHTML = q.passage;
+                passageBox.classList.remove("hidden");
+            } else {
+                passageBox.classList.add("hidden");
+            }
+
+            // Options Render
+            const container = document.getElementById("optionsContainer");
+            container.innerHTML = "";
+
+            q.options.forEach((optText, optIdx) => {
+                const isSelected = studentAnswers[currentQIndex] === optIdx;
+                const optBtn = document.createElement("button");
+                optBtn.type = "button";
+                optBtn.onclick = () => selectOption(optIdx);
+                optBtn.className = `w-full text-left p-3.5 rounded-xl border transition flex items-center justify-between text-sm md:text-base font-medium ${
+                    isSelected 
+                    ? "border-emerald-600 bg-emerald-50/80 text-emerald-900 shadow-sm" 
+                    : "border-gray-200 hover:border-emerald-300 hover:bg-gray-50 text-gray-700"
+                }`;
+
+                const letter = String.fromCharCode(65 + optIdx);
+                optBtn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg ${isSelected ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500'} flex items-center justify-center font-bold text-xs shrink-0">${letter}</span>
+                        <span>${optText}</span>
+                    </div>
+                    ${isSelected ? '<i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>' : ''}
+                `;
+                container.appendChild(optBtn);
+            });
+
+            document.getElementById("prevBtn").disabled = currentQIndex === 0;
+            
+            const nextText = document.getElementById("nextBtnText");
+            const nextIcon = document.getElementById("nextBtnIcon");
+            if (currentQIndex === total - 1) {
+                nextText.innerText = "إنهاء وتقديم الامتحان";
+                nextIcon.className = "fa-solid fa-paper-plane";
+            } else {
+                nextText.innerText = "التالي";
+                nextIcon.className = "fa-solid fa-chevron-left";
+            }
+        }
+
+        function selectOption(optIdx) {
+            studentAnswers[currentQIndex] = optIdx;
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQIndex > 0) {
+                currentQIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQIndex < processedQuestions.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                submitExam();
+            }
+        }
+
+        // --- 6. SUBMISSION & SCORING ---
+        function submitExam() {
+            let correctCount = 0;
+            const totalQ = processedQuestions.length;
+
+            processedQuestions.forEach((q, idx) => {
+                if (studentAnswers[idx] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const scorePercent = Math.round((correctCount / totalQ) * 100);
+
+            document.getElementById("examScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.remove("hidden");
+
+            document.getElementById("resultStudentName").innerText = `اسم الطالب: ${studentName}`;
+            document.getElementById("finalScore").innerText = `${scorePercent} / 100`;
+
+            const iconBg = document.getElementById("resultIconBg");
+            const icon = document.getElementById("resultIcon");
+            const tag = document.getElementById("scoreFeedbackTag");
+
+            if (scorePercent >= 85) {
+                iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner bg-emerald-100 text-emerald-600";
+                icon.className = "fa-solid fa-award";
+                tag.className = "text-xs font-semibold px-3 py-1 rounded-full inline-block mt-1 bg-emerald-100 text-emerald-800";
+                tag.innerText = "ممتاز جداً - أداء استثنائي";
+            } else if (scorePercent >= 60) {
+                iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner bg-amber-100 text-amber-600";
+                icon.className = "fa-solid fa-star";
+                tag.className = "text-xs font-semibold px-3 py-1 rounded-full inline-block mt-1 bg-amber-100 text-amber-800";
+                tag.innerText = "جيد جداً - يمكنك التحسين أكثر";
+            } else {
+                iconBg.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner bg-red-100 text-red-600";
+                icon.className = "fa-solid fa-circle-exclamation";
+                tag.className = "text-xs font-semibold px-3 py-1 rounded-full inline-block mt-1 bg-red-100 text-red-800";
+                tag.innerText = "بحاجة إلى مراجعة وتدريب إضافي";
+            }
+
+            saveToFirebase(scorePercent);
+            generateFeedback();
+        }
+
+        function generateFeedback() {
+            const list = document.getElementById("feedbackList");
+            list.innerHTML = "";
+
+            processedQuestions.forEach((q, idx) => {
+                const userAns = studentAnswers[idx];
+                const isCorrect = userAns === q.correct;
+
+                const item = document.createElement("div");
+                item.className = `p-4 rounded-xl border ${isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} space-y-2 text-sm`;
+
+                const userText = userAns !== null ? q.options[userAns] : "لم يتم الإجابة";
+                const correctText = q.options[q.correct];
+
+                item.innerHTML = `
+                    <div class="flex items-start gap-2 font-bold text-gray-800" dir="ltr">
+                        <span class="${isCorrect ? 'text-emerald-600' : 'text-red-500'}">${idx + 1}.</span>
+                        <span>${q.q}</span>
+                    </div>
+                    <div class="text-xs space-y-1 mr-4">
+                        <p class="${isCorrect ? 'text-emerald-700 font-semibold' : 'text-red-600 font-semibold'}">
+                            إجابتك: ${userText} ${isCorrect ? '✓' : '✗'}
+                        </p>
+                        ${!isCorrect ? `<p class="text-gray-700 font-bold">الإجابة الصحيحة: ${correctText}</p>` : ''}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleFeedback() {
+            const fb = document.getElementById("feedbackContainer");
+            fb.classList.toggle("hidden");
+        }
+
+        // --- 7. FIREBASE RECORDING ---
+        function saveToFirebase(score) {
+            const record = {
+                studentName: studentName,
+                score: score,
+                timestamp: new Date().toLocaleString("ar-JO"),
+                violations: cheatViolations
+            };
+
+            if (db) {
+                db.ref("exam_results").push(record);
+            } else {
+                let local = JSON.parse(localStorage.getItem("exam_results") || "[]");
+                local.push(record);
+                localStorage.setItem("exam_results", JSON.stringify(local));
+            }
+        }
+
+        // --- 8. ANTI-CHEAT PROTOCOLS ---
+        function setupAntiCheat() {
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    cheatViolations++;
+                    const banner = document.getElementById("cheatAlert");
+                    banner.classList.remove("hidden");
+                    document.getElementById("cheatCountText").innerText = `تنبيه: تم رصد الخروج من الصفحة (${cheatViolations} مرة). تم تسجيل المخالفة!`;
+                }
+            });
+
+            window.addEventListener("blur", () => {
+                cheatViolations++;
+                const banner = document.getElementById("cheatAlert");
+                banner.classList.remove("hidden");
+                document.getElementById("cheatCountText").innerText = `تنبيه: فقدان التركيز على النافذة (${cheatViolations} مرة).`;
+            });
+        }
+
+        // --- 9. TEACHER DASHBOARD LOGIC ---
+        function openTeacherModal() {
+            document.getElementById("teacherModal").classList.remove("hidden");
+        }
+
+        function closeTeacherModal() {
+            document.getElementById("teacherModal").classList.add("hidden");
+        }
+
+        function verifyTeacher() {
+            const pass = document.getElementById("teacherPassInput").value;
+            if (pass === "MK1978mk") {
+                document.getElementById("teacherAuthErr").classList.add("hidden");
+                document.getElementById("teacherAuthView").classList.add("hidden");
+                document.getElementById("teacherDashboardView").classList.remove("hidden");
+                document.getElementById("teacherDashboardView").classList.add("flex");
+                loadFirebaseResults();
+            } else {
+                document.getElementById("teacherAuthErr").classList.remove("hidden");
+            }
+        }
+
+        function loadFirebaseResults() {
+            const tbody = document.getElementById("resultsTableBody");
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">جاري تحميل البيانات...</td></tr>`;
+
+            if (db) {
+                db.ref("exam_results").once("value", snapshot => {
+                    const data = snapshot.val();
+                    renderTableData(data);
+                });
+            } else {
+                const local = JSON.parse(localStorage.getItem("exam_results") || "[]");
+                renderTableData(local);
+            }
+        }
+
+        function renderTableData(data) {
+            const tbody = document.getElementById("resultsTableBody");
+            tbody.innerHTML = "";
+
+            if (!data) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد نتائج مسجلة حتى الآن</td></tr>`;
+                return;
+            }
+
+            const items = Array.isArray(data) ? data : Object.values(data);
+            items.reverse().forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-gray-50 border-b border-gray-100";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-gray-800">${item.studentName}</td>
+                    <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${item.score}%</span></td>
+                    <td class="p-2.5 text-gray-500">${item.timestamp}</td>
+                    <td class="p-2.5 text-red-500 font-bold">${item.violations || 0}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
